@@ -14,8 +14,11 @@ async def on_message(message):
     if message.author == client.user:
         return
 
-    if message.content.startswith('$hello'):
-        await message.channel.send('Hello!')
+    if message.content.startswith('$hi'):
+        await message.channel.send('HI there!')
+
+    if message.content.startswith('$GM'):
+        await message.channel.send('Good Morning')    
 
 
 keep_alive()
