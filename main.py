@@ -1,25 +1,68 @@
 import os
 import discord
 from keep_alive import keep_alive
+from discord.ext import commands
+import datetime
 
 TOKEN = os.getenv('TOKEN')
-client = discord.Client()
 
-@client.event
+from urllib import parse, request
+import re
+
+bot = commands.Bot(command_prefix='<', description="This is a Helper Bot")
+
+@bot.command(name='create-channel')
+async def create_channel(ctx, channel_name='Python-bot'):
+    guild = ctx.guild
+    existing_channel = discord.utils.get(guild.channels, name=channel_name)
+    if not existing_channel:
+        print(f'Creating a new channel: {channel_name}')
+        await guild.create_text_channel(channel_name)
+
+
+@bot.command()
+async def ping(ctx):
+    await ctx.send('pong')
+
+@bot.command()
+async def sum(ctx, numOne: int, numTwo: int):
+    await ctx.send(numOne + numTwo)
+
+@bot.command()
+async def info(ctx):
+    embed = discord.Embed(title=f"{ctx.guild.name}", description="Lorem Ipsum asdasd", timestamp=datetime.datetime.utcnow(), color=discord.Color.blue())
+    embed.add_field(name="Server created at", value=f"{ctx.guild.created_at}")
+    embed.add_field(name="Server Owner", value=f"{ctx.guild.owner}")
+    embed.add_field(name="Server Region", value=f"{ctx.guild.region}")
+    embed.add_field(name="Server ID", value=f"{ctx.guild.id}")
+    # embed.set_thumbnail(url=f"{ctx.guild.icon}")
+    embed.set_thumbnail(url="https://pluralsight.imgix.net/paths/python-7be70baaac.png")
+
+    await ctx.send(embed=embed)
+
+@bot.command()
+async def youtube(ctx, *, search):
+    query_string = parse.urlencode({'search_query': search})
+    html_content = request.urlopen('http://www.youtube.com/results?' + query_string)
+    # print(html_content.read().decode())
+    search_results = re.findall('href=\"\\/watch\\?v=(.{11})', html_content.read().decode())
+    print(search_results)
+    # I will put just the first result, you can loop the response to show more results
+    await ctx.send('https://www.youtube.com/watch?v=' + search_results[0])
+
+# Events
+@bot.event
 async def on_ready():
-    print('We have logged in as {0.user}'.format(client))
+    await bot.change_presence(activity=discord.Streaming(name="Life", url="https://www.youtube.com/"))
+    print('My Ready is Body')
 
-@client.event
+
+@bot.listen()
 async def on_message(message):
-    if message.author == client.user:
-        return
-
-    if message.content.startswith('$hi'):
-        await message.channel.send('HI there!')
-
-    if message.content.startswith('$GM'):
-        await message.channel.send('Good Morning')    
-
+    if "tutorial" in message.content.lower():
+        # in this case don't respond with the word "Tutorial" or you will call the on_message event recursively
+        await message.channel.send('This is that you want http://youtube.com/')
+        await bot.process_commands(message)
 
 keep_alive()
-client.run(TOKEN)
+bot.run(TOKEN)
