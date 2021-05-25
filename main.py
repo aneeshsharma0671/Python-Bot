@@ -2,7 +2,7 @@ import os
 import discord
 from keep_alive import keep_alive
 
-
+TOKEN = os.getenv('TOKEN')
 client = discord.Client()
 
 @client.event
@@ -19,4 +19,4 @@ async def on_message(message):
 
 
 keep_alive()
-client.run(os.getenv('TOKEN'))
+client.run(TOKEN)
